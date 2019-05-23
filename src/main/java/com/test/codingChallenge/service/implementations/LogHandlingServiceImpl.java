@@ -20,17 +20,15 @@ public class LogHandlingServiceImpl implements LogHandlingService {
         //temporary, can be removed when fileReader doesn't send whitespace at EOF.
         if (applicationLog != null) {
             ApplicationLogEntry initialLog = logDao.findByLogId(applicationLog.getId());
-            if (initialLog != null && initialLog.getState().equals(State.STARTED)
-                    && applicationLog.getState().equals(State.FINISHED)) {
-                updateLog(initialLog, applicationLog.getTimeStamp(), isAlertRequired(initialLog.getStartTime(), applicationLog.getTimeStamp()));
-            } else if (applicationLog.getState().equals(State.STARTED)) {
+            if (initialLog != null) {
+                updateLog(initialLog, applicationLog.getTimeStamp());
+            } else {
                 createLogEntry(applicationLog);
             }
         }
     }
 
-    public List<ApplicationLogEntry> showAlertLogs()
-    {
+    public List<ApplicationLogEntry> showAlertLogs() {
         return logDao.findAllByAlertIsTrue();
     }
 
@@ -38,11 +36,18 @@ public class LogHandlingServiceImpl implements LogHandlingService {
         return (endTime - startTime) > 4;
     }
 
-    private void updateLog(ApplicationLogEntry applicationLogEntry, long finishedTimestamp, boolean alertRequired) {
-        applicationLogEntry.setEndTime(finishedTimestamp);
-        applicationLogEntry.setAlert(alertRequired);
-        applicationLogEntry.setState(State.FINISHED);
-        logDao.save(applicationLogEntry);
+    private void updateLog(ApplicationLogEntry initialApplicationLog, long startOrEndTimestamp) {
+        boolean alertRequired;
+        if (initialApplicationLog.getState().equals(State.STARTED)) {
+            alertRequired = isAlertRequired(initialApplicationLog.getStartTime(), startOrEndTimestamp);
+            initialApplicationLog.setEndTime(startOrEndTimestamp);
+        } else {
+            alertRequired = isAlertRequired(startOrEndTimestamp, initialApplicationLog.getEndTime());
+            initialApplicationLog.setStartTime(startOrEndTimestamp);
+        }
+        initialApplicationLog.setAlert(alertRequired);
+        initialApplicationLog.setState(State.FINISHED);
+        logDao.save(initialApplicationLog);
     }
 
     private void createLogEntry(ApplicationLog applicationLog) {
@@ -51,7 +56,10 @@ public class LogHandlingServiceImpl implements LogHandlingService {
         logEntry.setHost(applicationLog.getHost());
         logEntry.setState(applicationLog.getState());
         logEntry.setType(applicationLog.getType());
-        logEntry.setStartTime(applicationLog.getTimeStamp());
+        if (applicationLog.getState().equals(State.STARTED))
+            logEntry.setStartTime(applicationLog.getTimeStamp());
+        else
+            logEntry.setEndTime(applicationLog.getTimeStamp());
         logEntry.setAlert(false);
         logDao.save(logEntry);
     }

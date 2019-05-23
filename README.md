@@ -1,6 +1,8 @@
 
 Prerequisites
 - hsqldb install and on your classpath, see: http://hsqldb.org/
+- if you dont want to update database name/user credentials use the following command to start your hsql database:
+    java -classpath path\to..\..\lib\hsqldb.jar org.hsqldb.server.Server --database.0 file:hsqldb/alert --dbname.0 alert
 - update the datasource in database configuration file to include your username/password and database name,
     the file is found here: src/main/java/com/test/codingChallenge/configuration/DatabaseConfiguration.class
 
