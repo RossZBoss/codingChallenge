@@ -1,0 +1,43 @@
+plugins {
+    id 'org.springframework.boot' version '2.1.5.RELEASE'
+    id 'java'
+}
+
+apply plugin: 'io.spring.dependency-management'
+
+group = 'com.test'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+bootRun {
+    //fixed issues with spring shell throwing exceptions in test
+    standardInput = System.in
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencies {
+    //extra spring dependencies
+    compile 'org.springframework.integration:spring-integration-file:5.1.0.RELEASE'
+    compile 'org.springframework.shell:spring-shell-starter:2.0.0.M2'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.1.5.RELEASE'
+
+    //database connection and configuration
+    compile 'org.hibernate:hibernate-core:5.0.4.Final'
+    compile group: 'org.hibernate', name: 'hibernate-entitymanager', version: '5.0.4.Final'
+    compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
+
+    //allowing getter/setter and allArgsConstructor annotations
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+
+    //string to json
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+
+    //test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testCompile group: 'org.jmockit', name: 'jmockit', version: '1.8'
+}
